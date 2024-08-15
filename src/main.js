@@ -65,14 +65,18 @@ export default async (context) => {
 
     case '/create-intent': // New case for creating a Payment Intent
       try {
-        const amountInfo = (req.body.amount * 100).toString();
-        const amount = Math.floor(parseFloat(amountInfo)); // Amount in smallest currency unit (e.g., cents for USD)
+        const amount = Math.floor(parseFloat(req.body.amount) * 100); // Amount in smallest currency unit (e.g., cents for USD)
         const currency = 'usd';
         const userId = req.headers['x-appwrite-user-id'];
 
+        if (isNaN(amount) || amount <= 0) {
+          error('Invalid amount');
+          return res.json({ error: 'Invalid amount' }, 400);
+        }
+
         if (!userId) {
           error('User ID not found in request.');
-          return res.status(400).json({ error: 'User ID is required' });
+          return res.json({ error: 'User ID is required' }, 400);
         }
 
         const intent = await stripe.client.paymentIntents.create({
@@ -85,7 +89,7 @@ export default async (context) => {
         return res.json({ client_secret: intent.client_secret });
       } catch (err) {
         error(err.message);
-        return res.status(err.statusCode || 500).json({ error: err.message });
+        return res.json({ error: err.message }, err.statusCode || 500);
       }
 
     case '/webhook':
