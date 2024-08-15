@@ -74,8 +74,10 @@ export default async (context) => {
         // log(`Parsed amount: ${amount}`);
 
         // log(`Received headers: ${JSON.stringify(req.headers)}`);
-        log('Received user ID:', req.headers['x-appwrite-user-id']);
-        const userId = req.headers['x-appwrite-user-id'];
+        const userId =
+          req.headers['x-appwrite-user-id'] ||
+          req.headers['X-Appwrite-User-Id'];
+        log('Received user ID:', userId);
 
         if (isNaN(amount) || amount <= 0) {
           error('Invalid amount');
