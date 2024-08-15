@@ -65,9 +65,9 @@ export default async (context) => {
 
     case '/create-intent': // New case for creating a Payment Intent
       try {
-        log(`Received request body: ${JSON.stringify(req.body)}`);
-
-        const amount = Math.floor(parseFloat(req.body.amount) * 100); // Amount in smallest currency unit (e.g., cents for USD)
+        log(`Received request body: ${JSON.stringify(req.body.amount)}`);
+        const amountStr = req.body.amount;
+        const amount = Math.floor(parseFloat(amountStr) * 100); // Amount in smallest currency unit (e.g., cents for USD)
         const currency = 'usd';
 
         log(`Parsed amount: ${amount}`);
