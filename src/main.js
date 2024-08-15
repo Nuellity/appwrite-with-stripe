@@ -40,7 +40,7 @@ export default async (context) => {
       const failureUrl = req.body?.failureUrl ?? fallbackUrl;
 
       const userId = req.headers['x-appwrite-user-id'];
-      log('Received user ID:', req.headers['x-appwrite-user-id']);
+
       if (!userId) {
         error('User ID not found in request.');
         return res.redirect(failureUrl, 303);
@@ -71,10 +71,10 @@ export default async (context) => {
         const amount = Math.floor(parseFloat(amountStr) * 100); // Amount in smallest currency unit (e.g., cents for USD)
         const currency = 'usd';
 
-        log(`Parsed amount: ${amount}`);
+        // log(`Parsed amount: ${amount}`);
 
-        log(`Received headers: ${JSON.stringify(req.headers)}`);
-
+        // log(`Received headers: ${JSON.stringify(req.headers)}`);
+        log('Received user ID:', req.headers['x-appwrite-user-id']);
         const userId = req.headers['x-appwrite-user-id'];
 
         if (isNaN(amount) || amount <= 0) {
