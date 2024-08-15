@@ -40,6 +40,7 @@ export default async (context) => {
       const failureUrl = req.body?.failureUrl ?? fallbackUrl;
 
       const userId = req.headers['x-appwrite-user-id'];
+      log('Received user ID:', req.headers['x-appwrite-user-id']);
       if (!userId) {
         error('User ID not found in request.');
         return res.redirect(failureUrl, 303);
