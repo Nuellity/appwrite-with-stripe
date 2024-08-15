@@ -72,6 +72,8 @@ export default async (context) => {
 
         log(`Parsed amount: ${amount}`);
 
+        log(`Received headers: ${JSON.stringify(req.headers)}`);
+
         const userId = req.headers['x-appwrite-user-id'];
 
         if (isNaN(amount) || amount <= 0) {
