@@ -65,8 +65,13 @@ export default async (context) => {
 
     case '/create-intent': // New case for creating a Payment Intent
       try {
+        log(`Received request body: ${JSON.stringify(req.body)}`);
+
         const amount = Math.floor(parseFloat(req.body.amount) * 100); // Amount in smallest currency unit (e.g., cents for USD)
         const currency = 'usd';
+
+        log(`Parsed amount: ${amount}`);
+
         const userId = req.headers['x-appwrite-user-id'];
 
         if (isNaN(amount) || amount <= 0) {
