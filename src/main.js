@@ -33,6 +33,8 @@ export default async (context) => {
   switch (req.path) {
     case '/checkout':
       const fallbackUrl = req.scheme + '://' + req.headers['host'] + '/';
+      const amountInfo = (req.body.amount * 100).toString();
+      const amount = Math.floor(parseFloat(amountInfo));
 
       const successUrl = req.body?.successUrl ?? fallbackUrl;
       const failureUrl = req.body?.failureUrl ?? fallbackUrl;
@@ -45,6 +47,7 @@ export default async (context) => {
 
       const session = await stripe.checkoutPayment(
         context,
+        amount,
         userId,
         successUrl,
         failureUrl
@@ -59,6 +62,31 @@ export default async (context) => {
 
       log(`Created Stripe checkout session for user ${userId}.`);
       return res.redirect(session.url, 303);
+
+    case '/create-intent': // New case for creating a Payment Intent
+      try {
+        const amountInfo = (req.body.amount * 100).toString();
+        const amount = Math.floor(parseFloat(amountInfo)); // Amount in smallest currency unit (e.g., cents for USD)
+        const currency = 'usd';
+        const userId = req.headers['x-appwrite-user-id'];
+
+        if (!userId) {
+          error('User ID not found in request.');
+          return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        const intent = await stripe.client.paymentIntents.create({
+          amount,
+          currency,
+          automatic_payment_methods: { enabled: true },
+          metadata: { userId },
+        });
+
+        return res.json({ client_secret: intent.client_secret });
+      } catch (err) {
+        error(err.message);
+        return res.status(err.statusCode || 500).json({ error: err.message });
+      }
 
     case '/webhook':
       const event = stripe.validateWebhook(context, req);

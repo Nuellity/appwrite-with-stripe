@@ -15,11 +15,11 @@ class StripeService {
    * @param {string} successUrl
    * @param {string} failureUrl
    */
-  async checkoutPayment(context, userId, successUrl, failureUrl) {
+  async checkoutPayment(context, amount, userId, successUrl, failureUrl) {
     /** @type {import('stripe').Stripe.Checkout.SessionCreateParams.LineItem} */
     const lineItem = {
       price_data: {
-        unit_amount: 1000, // $10.00
+        unit_amount: amount, // $10.00
         currency: 'usd',
         product_data: {
           name: 'Product',
