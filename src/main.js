@@ -77,7 +77,7 @@ export default async (context) => {
         const userId =
           req.headers['x-appwrite-user-id'] ||
           req.headers['X-Appwrite-User-Id'];
-        log('Received user ID:', userId);
+        log('Received user ID:', req.headers);
 
         if (isNaN(amount) || amount <= 0) {
           error('Invalid amount');
