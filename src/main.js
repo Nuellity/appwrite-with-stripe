@@ -71,13 +71,8 @@ export default async (context) => {
         const amount = Math.floor(parseFloat(amountStr) * 100); // Amount in smallest currency unit (e.g., cents for USD)
         const currency = 'usd';
 
-        // log(`Parsed amount: ${amount}`);
-
-        log(`Received headers: ${JSON.stringify(req.headers)}`);
-        const userId =
-          req.headers['x-appwrite-user-id'] ||
-          req.headers['X-Appwrite-User-Id'];
-        log('Received user ID:', req);
+        const userId = req.headers['x-user-id'];
+        log(userId);
 
         if (isNaN(amount) || amount <= 0) {
           error('Invalid amount');
