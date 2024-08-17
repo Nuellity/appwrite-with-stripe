@@ -1,6 +1,6 @@
+import StripeService from './stripe.js';
 import AppwriteService from './appwrite.js';
 import { getStaticFile, interpolate, throwIfMissing } from './utils.js';
-import stripe from 'stripe';
 
 export default async (context) => {
   const { req, res, log, error } = context;
@@ -28,54 +28,50 @@ export default async (context) => {
   }
 
   const appwrite = new AppwriteService();
+  const stripe = new StripeService();
 
   switch (req.path) {
     case '/checkout':
-      // const fallbackUrl = req.scheme + '://' + req.headers['host'] + '/';
-      // const amountInfo = (req.body.amount * 100).toString();
-      // const amount = Math.floor(parseFloat(amountInfo));
+      const fallbackUrl = req.scheme + '://' + req.headers['host'] + '/';
+      const amountInfo = (req.body.amount * 100).toString();
+      const amount = Math.floor(parseFloat(amountInfo));
 
-      // const successUrl = req.body?.successUrl ?? fallbackUrl;
-      // const failureUrl = req.body?.failureUrl ?? fallbackUrl;
+      const successUrl = req.body?.successUrl ?? fallbackUrl;
+      const failureUrl = req.body?.failureUrl ?? fallbackUrl;
 
-      // const userId = req.headers['x-user-id'];
+      const userId = req.headers['x-user-id'];
 
-      // if (!userId) {
-      //   error('User ID not found in request.');
-      //   return res.redirect(failureUrl, 303);
-      // }
+      if (!userId) {
+        error('User ID not found in request.');
+        return res.redirect(failureUrl, 303);
+      }
 
-      // const session = await stripe.checkoutPayment(
-      //   context,
-      //   amount,
-      //   userId,
-      //   successUrl,
-      //   failureUrl
-      // );
-      // if (!session) {
-      //   error('Failed to create Stripe checkout session.');
-      //   return res.redirect(failureUrl, 303);
-      // }
+      const session = await stripe.checkoutPayment(
+        context,
+        amount,
+        userId,
+        successUrl,
+        failureUrl
+      );
+      if (!session) {
+        error('Failed to create Stripe checkout session.');
+        return res.redirect(failureUrl, 303);
+      }
 
-      // context.log('Session:');
-      // context.log(session);
+      context.log('Session:');
+      context.log(session);
 
-      log(`Created Stripe checkout session for user`);
-    // return res.redirect(session.url, 303);
+      log(`Created Stripe checkout session for user ${userId}.`);
+      return res.redirect(session.url, 303);
 
     case '/create-intent': // New case for creating a Payment Intent
       try {
+        log(`Received request body: ${JSON.stringify(req.body.amount)}`);
         const amountStr = req.body.amount;
-        const amount = Math.floor(parseFloat(amountStr) * 100); // Amount in smallest currency unit (e.g., cents for USD)
+        const amount = Math.floor(parseFloat(amountStr) * 100);
         const currency = 'usd';
-        const customer = await stripe.customers.create();
-        const ephemeralKey = await stripe.ephemeralKeys.create(
-          { customer: customer.id },
-          { apiVersion: '2020-08-27' }
-        );
 
         const userId = req.headers['x-user-id'];
-        log(userId);
 
         if (isNaN(amount) || amount <= 0) {
           error('Invalid amount');
@@ -87,18 +83,14 @@ export default async (context) => {
           return res.json({ error: 'User ID is required' }, 400);
         }
 
-        const intent = await stripe.paymentIntents.create({
+        const intent = await stripe.client.paymentIntents.create({
           amount,
           currency,
           automatic_payment_methods: { enabled: true },
           metadata: { userId },
         });
 
-        return res.json({
-          paymentIntent: intent.client_secret,
-          ephemeralKey: ephemeralKey.secret,
-          customer: customer.id,
-        });
+        return res.json({ client_secret: intent.client_secret });
       } catch (err) {
         error(err.message);
         return res.json({ error: err.message }, err.statusCode || 500);
